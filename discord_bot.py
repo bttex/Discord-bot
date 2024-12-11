@@ -2,9 +2,13 @@ import discord
 from discord.ext import commands, tasks
 import datetime
 import asyncio
+from dotenv import load_dotenv, dotenv_values
+import os
+
+load_dotenv()
 
 # Configure seu bot
-TOKEN = '################################'
+TOKEN = os.getenv("TOKEN")
 intents = discord.Intents.default()
 intents.messages = True
 intents.guilds = True
@@ -46,13 +50,16 @@ async def enviar_mensagem_later(agendamento, channel, mensagem, mencao, autor):
     delay = (agendamento - agora).total_seconds()
     # Esperar até o horário agendado
     await asyncio.sleep(delay)
-    # Enviar a mensagem no canal especificado com a menção adequada
+    # Buscar o cargo no servidor
+    role = discord.utils.get(channel.guild.roles, name=mencao)
+    
+    # Verificar o tipo de menção e enviar a mensagem apropriada
     if mencao.lower() == 'everyone':
         await channel.send(f"@everyone {mensagem}")
     elif mencao.lower() == 'me':
         await channel.send(f"{autor.mention} {mensagem}")
-    elif mencao.lower() == 'milionarios':
-        await channel.send(f"@Milionários {mensagem}")
+    elif role:  # Se for um cargo válido
+        await channel.send(f"{role.mention} {mensagem}")
     else:
         await channel.send(mensagem)
 
